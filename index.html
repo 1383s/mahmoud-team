@@ -141,13 +141,16 @@
     const MAHMOUD_UID = "ضع_الـUID_الخاص_بمحمود_هنا"; // <--- هام جداً: انسخ الـ UID من الفايربيس وضعه هنا
     // ==========================================
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-    const codesRef = ref(db, 'approvedStudents');
-const MAHMOUD_UID = "4yVf0b4WSTh36foBBFNxmivQ5ww2";
-    let myCodes = []; // لتخزين أكواد محمود فقط
-    let currentUid = null;
+    const firebaseConfig = {
+        apiKey: "AIzaSyBK6FZF3LW83qaUHBKYTfiVd2Ozrd1Rf2g",
+        authDomain: "thanawy-1383.firebaseapp.com",
+        databaseURL: "https://thanawy-1383-default-rtdb.firebaseio.com",
+        projectId: "thanawy-1383",
+        storageBucket: "thanawy-1383.firebasestorage.app",
+        messagingSenderId: "1026664406457",
+        appId: "1:1026664406457:web:87d71f7e41bef36ba0aa68",
+        measurementId: "G-J5R2EFM2D0"
+    };
 
     // Toast Notification
     window.showToast = (msg, type = "success") => {
