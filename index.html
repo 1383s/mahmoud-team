@@ -28,41 +28,62 @@
         }
         #loginContainer h2 { color: var(--secondary); margin-bottom: 30px; }
         #loginContainer input { background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; margin-bottom: 15px; padding: 15px; width: 100%; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
         header { display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.8); padding: 15px 25px; border-radius: 12px; margin-bottom: 30px; border-bottom: 2px solid var(--secondary); }
         .wallet-card { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 25px; border-radius: 16px; text-align: center; margin-bottom: 30px; }
         .wallet-card h3 { font-size: 2.5rem; margin: 10px 0; font-weight: 900; }
         .btn-primary { background: var(--secondary); color: white; padding: 12px 24px; border-radius: 50px; border: none; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; transition: 0.3s; }
         .btn-primary:hover { background: #047857; }
         .btn-logout { background: rgba(239, 68, 68, 0.2); color: var(--danger); border:none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+        
+        /* Table Styles */
         .table-wrapper { background: var(--bg-card); border-radius: 16px; overflow-x: auto; padding: 10px; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0 5px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
         th { color: var(--text-muted); padding: 10px; font-size: 0.9rem; }
-        td { background: #263346; padding: 15px; text-align: center; }
+        td { background: #263346; padding: 15px; text-align: center; vertical-align: middle; }
         td:first-child { border-radius: 0 10px 10px 0; }
         td:last-child { border-radius: 10px 0 0 10px; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; }
+        
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
         .badge-active { background: rgba(16, 185, 129, 0.2); color: var(--success); }
         .badge-expired { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-        .action-btn { border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin: 2px; }
+        .badge-blocked { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+
+        /* Action Buttons */
+        .action-btn { border: none; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; margin: 0 3px; transition: 0.2s; }
+        .action-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-edit { background: rgba(59, 130, 246, 0.15); color: var(--primary); } 
+        .btn-eject { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        .btn-block { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .btn-delete { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .btn-copy { background: #334155; color: white; width: auto; padding: 0 10px; font-size: 0.8rem; height: 30px; }
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 999; }
         .modal-content { background: #1e293b; padding: 30px; border-radius: 20px; width: 95%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); }
         .modal-content input, .modal-content select { width: 100%; padding: 12px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; }
+        
         #toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 1000; }
         .toast { padding: 12px 20px; border-radius: 8px; color: white; margin-top: 10px; }
         .toast-success { background: #059669; }
         .toast-error { background: #dc2626; }
-        @media (max-width: 768px) { td { display: block; text-align: right; padding: 10px; border-bottom: 1px solid #334155; } thead { display: none; } td::before { content: attr(data-label); float: left; color: var(--text-muted); font-size: 0.85rem; } }
+        
+        @media (max-width: 768px) { 
+            td { display: block; text-align: right; padding: 10px; border-bottom: 1px solid #334155; } 
+            thead { display: none; } 
+            td::before { content: attr(data-label); float: left; color: var(--text-muted); font-size: 0.85rem; } 
+            .action-btn { width: 40px; height: 40px; margin: 5px; }
+            td:last-child { display: flex; justify-content: center; flex-wrap: wrap; }
+        }
     </style>
 </head>
 <body>
 
 <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js';
-    import { getDatabase, ref, onValue, update, set } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js';
+    import { getDatabase, ref, onValue, update, set, remove } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js';
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js'; 
 
-    // 1. الإعدادات الصحيحة (تم إضافتها هنا)
+    // إعدادات الفايربيز (لا تعدل فيها)
     const firebaseConfig = {
         apiKey: "AIzaSyBK6FZF3LW83qaUHBKYTfiVd2Ozrd1Rf2g",
         authDomain: "thanawy-1383.firebaseapp.com",
@@ -74,19 +95,16 @@
         measurementId: "G-J5R2EFM2D0"
     };
 
-    // 2. تشغيل التطبيق
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
     const codesRef = ref(db, 'approvedStudents');
 
-    // 3. كود محمود (تم وضعه بشكل صحيح)
     const MY_ROLE_NAME = 'mahmoud'; 
-    const MAHMOUD_UID = "4yVf0b4WSTh36foBBFNxmivQ5ww2"; // الكود الصحيح
+    const MAHMOUD_UID = "4yVf0b4WSTh36foBBFNxmivQ5ww2"; // تأكد إن ده الـ UID الصحيح
 
     let myCodes = []; 
 
-    // دالة عرض الرسائل
     window.showToast = (msg, type = "success") => {
         const container = document.getElementById('toast-container');
         const div = document.createElement('div');
@@ -96,12 +114,9 @@
         setTimeout(() => div.remove(), 3000);
     };
 
-    // التحقق من تسجيل الدخول
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            console.log("Logged in user:", user.uid);
             if(user.uid !== MAHMOUD_UID) {
-                // لو دخل أي حد غير محمود (حتى لو أنت الأدمن) هيخرجه
                 showToast("❌ غير مصرح لك بدخول لوحة محمود", "error");
                 signOut(auth);
                 return;
@@ -115,20 +130,15 @@
         }
     });
 
-    // دالة تسجيل الدخول
     window.handleLogin = (e) => {
-        e.preventDefault(); // دي أهم سطر عشان يمنع الصفحة تعمل ريفريش
+        e.preventDefault();
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
-        
         const btn = document.querySelector('button[type="submit"]');
         btn.innerText = "جاري الدخول...";
-        
-        signInWithEmailAndPassword(auth, email, pass)
-        .catch(err => {
-            console.error(err);
+        signInWithEmailAndPassword(auth, email, pass).catch(err => {
             btn.innerText = "دخول المسوقين";
-            showToast("خطأ في الدخول: تأكد من الإيميل والباسورد", "error");
+            showToast("خطأ في الدخول", "error");
         });
     };
 
@@ -161,24 +171,29 @@
             .filter(c => c.name.toLowerCase().includes(search) || c.uid.includes(search));
 
         if(filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted)">لا توجد بيانات...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted)">لا توجد بيانات...</td></tr>`;
             return;
         }
 
         const now = Date.now();
         filtered.forEach(item => {
             const isExpired = item.expiry < now;
-            const status = isExpired ? '<span class="badge badge-expired">منتهي</span>' : '<span class="badge badge-active">نشط</span>';
+            let status = isExpired ? '<span class="badge badge-expired">منتهي</span>' : '<span class="badge badge-active">نشط</span>';
+            if(item.isBlocked) status = '<span class="badge badge-blocked">محظور</span>';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td data-label="الكود" style="font-family:monospace; color:var(--primary); direction:ltr;">${item.uid}</td>
+                <td data-label="الكود"><span style="font-family:monospace; color:var(--primary); font-weight:bold;">${item.uid}</span> <button onclick="copyToClip('${item.uid}')" class="action-btn btn-copy"><i class="fas fa-copy"></i></button></td>
                 <td data-label="الاسم">${item.name}</td>
                 <td data-label="المبلغ">${item.pricePaid}</td>
                 <td data-label="الشعبة">${item.section}</td>
                 <td data-label="الحالة">${status}</td>
-                <td data-label="إجراءات">
-                    <button onclick="copyToClip('${item.uid}')" class="action-btn" style="background:#334155; color:white;"><i class="fas fa-copy"></i></button>
-                    ${isExpired ? `<button onclick="renewCode('${item.uid}', '${item.name}')" class="action-btn" style="background:var(--success); color:white;"><i class="fas fa-sync"></i></button>` : ''}
+                <td data-label="ID الجهاز" style="font-size:0.8rem; color:#aaa;">${item.deviceId ? '...'+item.deviceId.slice(-6) : '--'}</td>
+                <td data-label="الإجراءات">
+                    <button onclick="openEditStudent('${item.uid}')" class="action-btn btn-edit" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button onclick="ejectDevice('${item.uid}', '${item.name}')" class="action-btn btn-eject" title="طرد الجهاز"><i class="fas fa-mobile-alt"></i></button>
+                    <button onclick="toggleBlock('${item.uid}', ${item.isBlocked})" class="action-btn btn-block" title="حظر/فك حظر"><i class="fas ${item.isBlocked ? 'fa-play' : 'fa-pause'}"></i></button>
+                    <button onclick="deleteStudent('${item.uid}', '${item.name}')" class="action-btn btn-delete" title="حذف نهائي"><i class="fas fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -187,14 +202,68 @@
 
     window.copyToClip = (text) => { navigator.clipboard.writeText(text); showToast("تم النسخ ✅"); };
     
+    // ==========================================
+    // دوال التحكم الجديدة (حذف، حظر، طرد، تعديل)
+    // ==========================================
+
+    // 1. حذف الطالب
+    window.deleteStudent = (uid, name) => {
+        if(confirm(`⚠️ تحذير خطير: هل أنت متأكد من حذف الطالب "${name}" نهائياً؟`)) {
+            remove(ref(db, 'approvedStudents/' + uid))
+            .then(() => showToast("🗑️ تم الحذف بنجاح", "error"))
+            .catch(err => showToast("خطأ: " + err.message, "error"));
+        }
+    };
+
+    // 2. حظر/فك حظر
+    window.toggleBlock = (uid, currentStatus) => {
+        update(ref(db, 'approvedStudents/' + uid), { isBlocked: !currentStatus })
+        .then(() => showToast(currentStatus ? "✅ تم تفعيل الطالب" : "⛔ تم حظر الطالب", "warning"));
+    };
+
+    // 3. طرد الجهاز
+    window.ejectDevice = (uid, name) => {
+        if(confirm(`هل تريد طرد جهاز الطالب ${name}؟ سيتمكن من الدخول من جهاز جديد.`)) {
+            update(ref(db, 'approvedStudents/' + uid), { deviceId: "" })
+            .then(() => showToast("📱 تم طرد الجهاز بنجاح"));
+        }
+    };
+
+    // 4. تعديل البيانات
+    window.openEditStudent = (uid) => {
+        const student = myCodes.find(c => c.uid === uid);
+        if(student) {
+            document.getElementById('editUid').value = uid;
+            document.getElementById('editName').value = student.name;
+            document.getElementById('editSection').value = student.section;
+            document.getElementById('editPrice').value = student.pricePaid;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+    };
+
+    window.saveEdit = (e) => {
+        e.preventDefault();
+        const uid = document.getElementById('editUid').value;
+        const updates = {
+            name: document.getElementById('editName').value,
+            section: document.getElementById('editSection').value,
+            pricePaid: parseFloat(document.getElementById('editPrice').value) || 0
+        };
+        update(ref(db, 'approvedStudents/' + uid), updates)
+        .then(() => {
+            showToast("✅ تم تعديل البيانات");
+            document.getElementById('editModal').style.display = 'none';
+        });
+    };
+
+    // إضافة جديد
     window.generateCode = () => {
         let code;
         do { code = String(Math.floor(100000 + Math.random() * 900000)); } while (false); 
         document.getElementById('newCodeText').innerText = code;
     };
-
     window.openAddModal = () => { generateCode(); document.getElementById('addModal').style.display = 'flex'; };
-    window.closeModal = () => document.getElementById('addModal').style.display = 'none';
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
 
     window.saveCode = (e) => {
         e.preventDefault();
@@ -215,17 +284,8 @@
         };
 
         set(ref(db, 'approvedStudents/' + code), newStudent)
-        .then(() => { showToast("تم الحفظ 🎉"); closeModal(); document.getElementById('addForm').reset(); })
+        .then(() => { showToast("تم الحفظ 🎉"); closeModal('addModal'); document.getElementById('addForm').reset(); })
         .catch(err => showToast("خطأ: " + err.message, "error"));
-    };
-    
-    window.renewCode = (uid, name) => {
-        const days = prompt(`تجديد اشتراك: ${name}\nعدد الأيام:`);
-        if(days && !isNaN(days)) {
-             const item = myCodes.find(c => c.uid === uid);
-             let newExpiry = (item.expiry < Date.now()) ? Date.now() + (days * 86400000) : item.expiry + (days * 86400000);
-             update(ref(db, 'approvedStudents/' + uid), { expiry: newExpiry }).then(() => showToast("تم التجديد ✅"));
-        }
     };
 </script>
 
@@ -256,14 +316,14 @@
             <i class="fas fa-user-plus"></i> إضافة كود جديد
         </button>
 
-        <div class="search-container" style="margin-bottom:20px;">
+        <div style="margin-bottom:20px;">
             <input type="text" id="searchInput" placeholder="🔍 ابحث في أكوادك..." oninput="renderTable()" 
             style="width:100%; padding:12px; border-radius:10px; background:#1e293b; border:1px solid #334155; color:white;">
         </div>
 
         <div class="table-wrapper">
             <table>
-                <thead><tr><th>الكود</th><th>الاسم</th><th>المبلغ</th><th>الشعبة</th><th>الحالة</th><th>تحكم</th></tr></thead>
+                <thead><tr><th>الكود</th><th>الاسم</th><th>المبلغ</th><th>الشعبة</th><th>الحالة</th><th>الجهاز</th><th>الإجراءات</th></tr></thead>
                 <tbody id="codesBody"></tbody>
             </table>
         </div>
@@ -281,7 +341,26 @@
             <select id="sDuration"><option value="month">شهر (30 يوم)</option><option value="trial">تجريبي (ساعة)</option></select>
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button type="submit" class="btn-primary">حفظ الكود</button>
-                <button type="button" onclick="closeModal()" style="background:#334155; color:white; border:none; padding:10px 20px; border-radius:50px; cursor:pointer;">إلغاء</button>
+                <button type="button" onclick="closeModal('addModal')" style="background:#334155; color:white; border:none; padding:10px 20px; border-radius:50px; cursor:pointer;">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color:var(--primary); text-align:center;">✏️ تعديل بيانات</h3>
+        <form onsubmit="saveEdit(event)">
+            <input type="hidden" id="editUid">
+            <label style="color:#aaa; font-size:0.9rem;">الاسم:</label>
+            <input type="text" id="editName" required>
+            <label style="color:#aaa; font-size:0.9rem;">الشعبة:</label>
+            <select id="editSection"><option value="علمي علوم">علمي علوم</option><option value="علمي رياضة">علمي رياضة</option><option value="أدبي">أدبي</option><option value="أزهر">أزهر</option></select>
+            <label style="color:#aaa; font-size:0.9rem;">المبلغ:</label>
+            <input type="number" id="editPrice" required>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="submit" class="btn-primary">حفظ التعديلات</button>
+                <button type="button" onclick="closeModal('editModal')" style="background:#334155; color:white; border:none; padding:10px 20px; border-radius:50px; cursor:pointer;">إلغاء</button>
             </div>
         </form>
     </div>
